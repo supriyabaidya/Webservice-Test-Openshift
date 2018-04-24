@@ -15,7 +15,7 @@
         <h1>Hello World!</h1>
 
         <h2>a warm Welcome from Supriyo Baidya</h2>
-        <h3>Test netbeans maven java web project 'WebserviceTestOpenshift' (including web service) and deployed from netbeans to openshift through GIT.</h3>
+        <h3>Test netbeans maven java web project 'WebserviceTestOpenshift' (including web service) and deployed from netbeans to localhost through GIT.</h3>
         <p>To test WebService ,add Test after the current link in URL. </p>
     </body>
 </html>

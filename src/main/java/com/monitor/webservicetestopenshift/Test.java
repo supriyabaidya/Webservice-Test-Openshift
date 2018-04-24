@@ -16,7 +16,6 @@ import javax.jws.soap.SOAPBinding.Style;
  * @author TomHardy
  */
 //@SOAPBinding(style = Style.RPC)
-
 @WebService(serviceName = "Test")
 public class Test {
 
