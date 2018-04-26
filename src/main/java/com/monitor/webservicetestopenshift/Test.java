@@ -59,7 +59,7 @@ public class Test {
         if (!generatedFilesDirectory.exists()) {
 //            FileSys
 //            boolean b= generatedFilesDirectory.mkdirs();
-            return (new File(userDir)).canWrite() + " , " + generatedFilesDirectory.canWrite() + " , " + String.valueOf(generatedFilesDirectory.mkdirs());
+            return (new File(userDir)).canWrite() + " ,openshift " + generatedFilesDirectory.canWrite() + " , " + String.valueOf(generatedFilesDirectory.mkdirs());
         }
 
         File coverageR = new File(generatedFilesPath + "\\" + username + "_coverageR.csv");
