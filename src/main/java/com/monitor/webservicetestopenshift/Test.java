@@ -55,11 +55,11 @@ public class Test {
 
         System.out.println("com.mycompany.webservicetest.Test.putCSV() " + userDir);
 
-        String generatedFilesPath = userDir + "\\generatedFiles";
+        String generatedFilesPath = userDir + File.pathSeparator + "generatedFiles";
         File generatedFilesDirectory = new File(generatedFilesPath);
 
         if (!generatedFilesDirectory.exists()) {
-            return "userDir " + userDir + " ,(new File(userDir)).canWrite() " + (new File(userDir)).canWrite() + " ,generatedFilesDirectory.canWrite() " + generatedFilesDirectory.canWrite() + " ,generatedFilesDirectory.mkdirs() " + generatedFilesDirectory.mkdirs();
+            return "userDir " + userDir + " ,(new File(userDir)).canWrite() " + (new File(userDir)).canWrite() + " ,generatedFilesPath " + generatedFilesPath + " ,generatedFilesDirectory.canWrite() " + generatedFilesDirectory.canWrite() + " ,generatedFilesDirectory.mkdirs() " + generatedFilesDirectory.mkdirs();
         }
 
         File coverageR = new File(generatedFilesPath + "\\" + username + "_coverageR.csv");
