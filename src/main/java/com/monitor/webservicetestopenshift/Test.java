@@ -55,7 +55,7 @@ public class Test {
 
         System.out.println("com.mycompany.webservicetest.Test.putCSV() " + userDir);
 
-        String generatedFilesPath = userDir + File.pathSeparator + "generatedFiles";
+        String generatedFilesPath = userDir + File.separator + "generatedFiles";
         File generatedFilesDirectory = new File(generatedFilesPath);
 
         if (!generatedFilesDirectory.exists()) {
