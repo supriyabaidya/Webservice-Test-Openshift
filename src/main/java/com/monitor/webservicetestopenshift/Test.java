@@ -52,15 +52,13 @@ public class Test {
     private String putCSV(String username, String[][] data) {
 
         String userDir = System.getProperty("user.dir");
-        
+
         System.out.println("com.mycompany.webservicetest.Test.putCSV() " + userDir);
-        
+
         String generatedFilesPath = userDir + "\\generatedFiles";
         File generatedFilesDirectory = new File(generatedFilesPath);
 
         if (!generatedFilesDirectory.exists()) {
-//            FileSys
-//            boolean b= generatedFilesDirectory.mkdirs();
             return (new File(userDir)).canWrite() + " ,openshift " + generatedFilesDirectory.canWrite() + " , " + String.valueOf(generatedFilesDirectory.mkdirs());
         }
 
