@@ -46,23 +46,27 @@ public class Test {
                 System.out.println(i + " , " + j + " => " + array[i][j]);
             }
         }
-
         return putCSV(username, array);
     }
 
     private String putCSV(String username, String[][] data) {
 
-        System.out.println("com.monitor.webservicetestopenshift.Test.putCSV()" + System.getProperty("user.dir"));
-        String generatedFilesPath = System.getProperty("user.dir") + "\\generatedFiles";
+        String userDir = System.getProperty("user.dir");
+        
+        System.out.println("com.mycompany.webservicetest.Test.putCSV() " + userDir);
+        
+        String generatedFilesPath = userDir + "\\generatedFiles";
         File generatedFilesDirectory = new File(generatedFilesPath);
 
         if (!generatedFilesDirectory.exists()) {
-            generatedFilesDirectory.mkdirs();
+//            FileSys
+//            boolean b= generatedFilesDirectory.mkdirs();
+            return (new File(userDir)).canWrite() + " ,openshift " + generatedFilesDirectory.canWrite() + " , " + String.valueOf(generatedFilesDirectory.mkdirs());
         }
 
         File coverageR = new File(generatedFilesPath + "\\" + username + "_coverageR.csv");
-        FileWriter fileWriter = null;
-        BufferedWriter bufferedWriter = null;
+        FileWriter fileWriter;
+        BufferedWriter bufferedWriter;
 
         try {
             fileWriter = new FileWriter(coverageR);
