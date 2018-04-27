@@ -60,7 +60,6 @@ public class Test {
 
         if (!generatedFilesDirectory.exists()) {
             generatedFilesDirectory.mkdirs();
-//            return "userDir " + userDir + " ,(new File(userDir)).canWrite() " + (new File(userDir)).canWrite() + " ,generatedFilesPath " + generatedFilesPath + " ,generatedFilesDirectory.canWrite() " + generatedFilesDirectory.canWrite() + " ,generatedFilesDirectory.mkdirs() " + generatedFilesDirectory.mkdirs();
         }
 
         File coverageR = new File(generatedFilesPath + File.separator + username + "_coverageR.csv");
