@@ -12,6 +12,11 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.jws.WebService;
@@ -25,12 +30,15 @@ import javax.jws.WebParam;
 @WebService(serviceName = "Test")
 public class Test {
 
-//    final private String gusekDir = (getClass().getResource("../../../../../gusek").getPath()).substring(1).replace("/", File.separator);
     final private String userDir = System.getProperty("user.dir");
     final private String generatedFilesPath = userDir + File.separator + "generatedFiles";
     final private File generatedFilesDirectory = new File(generatedFilesPath);
     private FileWriter fileWriter;
     private BufferedWriter bufferedWriter;
+
+    private Statement statement = null;
+    private Connection connection = null;
+    private ResultSet resultset = null;
 
     /**
      * This is a sample web service operation
@@ -40,7 +48,38 @@ public class Test {
      */
     @WebMethod(operationName = "hello")
     public String hello(@WebParam(name = "name") String txt) {
-        return "Hello " + txt + " !";
+        return "Hello " + txt + " ! " + connectDB() + " , " + disconnectDB();
+    }
+
+    private String connectDB() {
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            if (connection == null) {
+//                connection = DriverManager.getConnection("jdbc:mysql://johnny.heliohost.org/supriyo_sensor_cloud?useSSL=false", "supriyo_63", "sb@9051568624");
+                connection = DriverManager.getConnection("jdbc:mysql://localhost/sensor_cloud?useSSL=false", "root", "");
+//                connection = DriverManager.getConnection("jdbc:mysql://172.30.4.68:3306/sensor_cloud?useSSL=false", "supriyo_63", "sb@9051568624");
+            }
+            statement = connection.createStatement();
+
+            return "Database Connected successfully.";
+
+        } catch (SQLException | ClassNotFoundException ex) {
+            Logger.getLogger(Test.class.getName()).log(Level.SEVERE, null, ex);
+            return "webservice: " + ex.toString();
+        }
+    }
+
+    private String disconnectDB() {
+        try {
+            connection.close();
+            connection = null;
+
+            return "Database Disconnected successfully.";
+
+        } catch (SQLException ex) {
+            Logger.getLogger(Test.class.getName()).log(Level.SEVERE, null, ex);
+            return "webservice: " + ex.toString();
+        }
     }
 
     @WebMethod(operationName = "twoDimesionArray")
