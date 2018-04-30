@@ -35,7 +35,7 @@
 
     <build>
         
-        <finalName>ROOT</finalName>
+        <finalName>Test</finalName>
         
         <plugins>
             <plugin>
@@ -56,6 +56,8 @@
                 <version>2.3</version>
                 <configuration>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
+                    <outputDirectory>target</outputDirectory>
+                    <warName>ROOT</warName>
                 </configuration>
             </plugin>
             <plugin>
