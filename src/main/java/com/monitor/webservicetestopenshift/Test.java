@@ -67,7 +67,7 @@ public class Test {
 
         System.out.println("com.monitor.webservicetestopenshift.Test.hello() " + test);
 
-        return "Hello " + txt + " ! " ;
+        return "Hello " + txt + " ! " +connectDB()+disconnectDB();
     }
 
     private String connectDB() {
