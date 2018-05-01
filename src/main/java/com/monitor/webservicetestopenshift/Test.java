@@ -76,7 +76,7 @@ public class Test {
             if (connection == null) {
 //                connection = DriverManager.getConnection("jdbc:mysql://johnny.heliohost.org/supriyo_sensor_cloud?useSSL=false", "supriyo_63", "sb@9051568624");
 //                connection = DriverManager.getConnection("jdbc:mysql://localhost/sensor_cloud?useSSL=false", "root", "");
-                connection = DriverManager.getConnection("jdbc:mysql://172.30.149.114:3306/sensor_cloud?useSSL=false", "userTY1", "VQvd3Ea0");
+                connection = DriverManager.getConnection("jdbc:mysql://10.129.52.56:3306/sensor_cloud?useSSL=false", "userTY1", "VQvd3Ea0");
             }
             statement = connection.createStatement();
 
