@@ -18,6 +18,9 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.jws.WebService;
@@ -275,7 +278,7 @@ public class Test {
         try {
             System.out.println("com.monitor.webservicetestopenshift.Test.callGLPK()  ::   " + "\"" + userDir + File.separator + "gusek" + File.separator + "glpsol\" -m \"" + userDir + File.separator + "gusek" + File.separator + "target.mod\" -d \"" + generatedFilesPath + File.separator + service_usersUsername + "_data.dat\"");
             process = runtime.exec("\"" + userDir + File.separator + "gusek" + File.separator + "glpsol\" -m \"" + userDir + File.separator + "gusek" + File.separator + "target.mod\" -d \"" + generatedFilesPath + File.separator + service_usersUsername + "_data.dat\"");
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
             String line = "", result = "";
             while ((line = bufferedReader.readLine()) != null) {
@@ -312,22 +315,73 @@ public class Test {
             fileWriter = new FileWriter(tempOutput, true);
             bufferedWriter = new BufferedWriter(fileWriter);
 
-            bufferedWriter.append("'sensorsId'=>'" + sensorsId + "', 'proximity'=>'" + proximity + "', 'light'=>'" + light + "\n");
+            bufferedWriter.append(sensorsId + "," + proximity + "," + light + "," + new Date() + "\n");
 
             bufferedWriter.close();
             fileWriter.close();
+            return "succeeded";
+
         } catch (IOException ex) {
             Logger.getLogger(Test.class.getName()).log(Level.SEVERE, null, ex);
+            return ex.toString();
         }
+    }
 
-        return "succeeded";
+    @WebMethod(operationName = "showOutput")
+    public String[][] showOutput(@WebParam(name = "service_usersUsername") String service_usersUsername) {
+
+        File tempOutput = new File(generatedFilesPath + File.separator + service_usersUsername + "_tempOutput.csv");
+
+        List<List<String>> outputList = new ArrayList<>();
+
+        try {
+            fileReader = new FileReader(tempOutput);
+            bufferedReader = new BufferedReader(fileReader);
+
+            String line, rowData[];
+            int length, noOfRow = 0;
+            while ((line = bufferedReader.readLine()) != null) {
+
+                rowData = line.split(",");
+                List<String> rowDataList = new ArrayList<>();
+                length = rowData.length;
+                for (int i = 0; i < length; i++) {
+                    rowDataList.add(rowData[i]);
+                }
+
+                outputList.add(rowDataList);
+                noOfRow++;
+            }
+
+            String[][] output = new String[noOfRow][4];     //noOfColomn=4
+
+            for (int i = 0; i < noOfRow; i++) {
+                for (int j = 0; j < 4; j++) {     //noOfColomn=4
+                    output[i][j] = outputList.get(i).get(j);
+                }
+            }
+
+            bufferedReader.close();
+            fileReader.close();
+            return output;
+
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(Test.class.getName()).log(Level.SEVERE, null, ex);
+            String[][] output = new String[1][1];
+            output[0][0] = ex.toString();
+            return output;
+        } catch (IOException ex) {
+            Logger.getLogger(Test.class.getName()).log(Level.SEVERE, null, ex);
+            String[][] output = new String[1][1];
+            output[0][0] = ex.toString();
+            return output;
+        }
     }
 
     @WebMethod(operationName = "clearOutput")
     public String clearOutput(@WebParam(name = "service_usersUsername") String service_usersUsername) {
 
-        (new File(generatedFilesPath + File.separator + service_usersUsername + "_tempOutput.csv")).delete();
-        System.out.println("com.monitor.webservicetestopenshift.Test.clearOutput() : " + service_usersUsername + "_tempOutput.csv file is deleted");
+        System.out.println("com.monitor.webservicetestopenshift.Test.clearOutput() ::\n" + service_usersUsername + "_tempOutput.csv file is deleted -> " + (new File(generatedFilesPath + File.separator + service_usersUsername + "_tempOutput.csv")).delete() + " ;\n" + service_usersUsername + "_coverageNodes.csv file is deleted -> " + (new File(generatedFilesPath + File.separator + service_usersUsername + "_coverageNodes.csv")).delete());
 
         return "succeeded";
     }
