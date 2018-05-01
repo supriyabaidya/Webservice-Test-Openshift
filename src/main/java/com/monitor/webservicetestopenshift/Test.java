@@ -67,7 +67,7 @@ public class Test {
 
         System.out.println("com.monitor.webservicetestopenshift.Test.hello() " + test);
 
-        return "Hello " + txt + " ! " +connectDB()+disconnectDB();
+        return "Hello " + txt + " ! " +connectDB();
     }
 
     private String connectDB() {
@@ -75,8 +75,8 @@ public class Test {
             Class.forName("com.mysql.jdbc.Driver");
             if (connection == null) {
 //                connection = DriverManager.getConnection("jdbc:mysql://johnny.heliohost.org/supriyo_sensor_cloud?useSSL=false", "supriyo_63", "sb@9051568624");
-                connection = DriverManager.getConnection("jdbc:mysql://172.30.149.114:3306/sensor_cloud", "root", "");
-//                connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/sensor_cloud?useSSL=false", "userTY1", "VQvd3Ea0");
+//                connection = DriverManager.getConnection("jdbc:mysql://172.30.149.114:3306/sensor_cloud", "root", "");
+                connection = DriverManager.getConnection("jdbc:mysql://172.30.149.114:3306/sensor_cloud", "userTY1", "VQvd3Ea0");
             }
             statement = connection.createStatement();
 
