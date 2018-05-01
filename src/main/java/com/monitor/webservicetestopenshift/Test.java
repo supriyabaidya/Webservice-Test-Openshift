@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -30,11 +31,15 @@ import javax.jws.WebParam;
 @WebService(serviceName = "Test")
 public class Test {
 
+    public boolean test = true;
+
     final private String userDir = System.getProperty("user.dir");
     final private String generatedFilesPath = userDir + File.separator + "generatedFiles";
     final private File generatedFilesDirectory = new File(generatedFilesPath);
     private FileWriter fileWriter;
     private BufferedWriter bufferedWriter;
+    private FileReader fileReader;
+    private BufferedReader bufferedReader;
 
     private Statement statement = null;
     private Connection connection = null;
@@ -48,7 +53,18 @@ public class Test {
      */
     @WebMethod(operationName = "hello")
     public String hello(@WebParam(name = "name") String txt) {
-        return "Hello " + txt + " !, " + connectDB() + " , " + disconnectDB();
+
+        System.out.println("com.monitor.webservicetestopenshift.Test.hello() " + test);
+
+        if (test) {
+            test = false;
+        } else {
+            test = true;
+        }
+
+        System.out.println("com.monitor.webservicetestopenshift.Test.hello() " + test);
+
+        return "Hello " + txt + " ! ";
     }
 
     private String connectDB() {
@@ -98,7 +114,7 @@ public class Test {
     }
 
     @WebMethod(operationName = "mainComputations")
-    public String mainComputations(@WebParam(name = "username") String username, @WebParam(name = "noOfSensors") String noOfSensors, @WebParam(name = "noOfTargets") String noOfTargets, @WebParam(name = "matrix") String[][] matrix) {
+    public String mainComputations(@WebParam(name = "service_usersUsername") String service_usersUsername, @WebParam(name = "noOfSensors") String noOfSensors, @WebParam(name = "noOfTargets") String noOfTargets, @WebParam(name = "matrix") String[][] matrix) {
 
         System.out.println("com.monitor.webservicetestopenshift.Test.mainComputations() : generatedFilesPath -> " + generatedFilesPath);
 
@@ -109,38 +125,66 @@ public class Test {
 
         String result;
 
-        result = genData(username, noOfSensors, noOfTargets);
+        result = genData(service_usersUsername, noOfSensors, noOfTargets);
 
         if (!result.equals("succeeded")) {
             return result;
         }
 
-        result = genCoverageR(username, matrix);
+        result = genCoverageR(service_usersUsername, matrix);
 
         if (!result.equals("succeeded")) {
             return result;
         }
 
-        result = genSubsetC(username, noOfSensors);
+        result = genSubsetC(service_usersUsername, noOfSensors);
 
         if (!result.equals("succeeded")) {
             return result;
         }
 
-        result = callGLPK(username);
+        result = callGLPK(service_usersUsername);
 
         if (!result.equals("succeeded")) {
             return result;
         }
 
-        sendNotification();
+        File coverageNodes = new File(generatedFilesPath + File.separator + service_usersUsername + "_coverageNodes.csv");
 
+        try {
+            fileReader = new FileReader(coverageNodes);
+            bufferedReader = new BufferedReader(fileReader);
+
+//            System.out.println("line start:");
+            String line, rowData[];
+            bufferedReader.readLine();
+            while ((line = bufferedReader.readLine()) != null) {
+                System.out.println(" line " + line);
+                rowData = line.split(",");
+                if (rowData[1].equals("1")) {
+                    sendNotification(rowData[0], service_usersUsername);
+                }
+            }
+
+//            System.out.println("line end:");
+            bufferedReader.close();
+            fileReader.close();
+
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(Test.class.getName()).log(Level.SEVERE, null, ex);
+            return ex.toString();
+        } catch (IOException ex) {
+            Logger.getLogger(Test.class.getName()).log(Level.SEVERE, null, ex);
+            return ex.toString();
+        }
+
+//        sendNotification("C");
         return "succeeded";
     }
 
-    private String genData(String username, String noOfSensors, String noOfTargets) {
+    private String genData(String service_usersUsername, String noOfSensors, String noOfTargets) {
 
-        File data = new File(generatedFilesPath + File.separator + username + "_data.dat");
+        File data = new File(generatedFilesPath + File.separator + service_usersUsername + "_data.dat");
 
         try {
             fileWriter = new FileWriter(data);
@@ -150,9 +194,9 @@ public class Test {
 
             bufferedWriter.write("param noOfSensors:= " + noOfSensors + " ;\n");
             bufferedWriter.write("param noOfTargets:= " + noOfTargets + " ;\n");
-            bufferedWriter.write("param coverageR:= \"" + generatedFilesPath + File.separator + username + "_coverageR.csv\" ;\n");
-            bufferedWriter.write("param subsetC:= \"" + generatedFilesPath + File.separator + username + "_subsetC.csv\" ;\n");
-            bufferedWriter.write("param coverageNodes:= \"" + generatedFilesPath + File.separator + username + "_coverageNodes.csv\" ;\n\n");
+            bufferedWriter.write("param coverageR:= \"" + generatedFilesPath + File.separator + service_usersUsername + "_coverageR.csv\" ;\n");
+            bufferedWriter.write("param subsetC:= \"" + generatedFilesPath + File.separator + service_usersUsername + "_subsetC.csv\" ;\n");
+            bufferedWriter.write("param coverageNodes:= \"" + generatedFilesPath + File.separator + service_usersUsername + "_coverageNodes.csv\" ;\n\n");
 
             bufferedWriter.write("end;\n");
 
@@ -167,9 +211,9 @@ public class Test {
         }
     }
 
-    private String genCoverageR(String username, String[][] matrix) {
+    private String genCoverageR(String service_usersUsername, String[][] matrix) {
 
-        File coverageR = new File(generatedFilesPath + File.separator + username + "_coverageR.csv");
+        File coverageR = new File(generatedFilesPath + File.separator + service_usersUsername + "_coverageR.csv");
 
         try {
             fileWriter = new FileWriter(coverageR);
@@ -199,9 +243,9 @@ public class Test {
         }
     }
 
-    private String genSubsetC(String username, String noOfSensors) {
+    private String genSubsetC(String service_usersUsername, String noOfSensors) {
 
-        File subsetC = new File(generatedFilesPath + File.separator + username + "_subsetC.csv");
+        File subsetC = new File(generatedFilesPath + File.separator + service_usersUsername + "_subsetC.csv");
 
         try {
             fileWriter = new FileWriter(subsetC);
@@ -223,14 +267,14 @@ public class Test {
         }
     }
 
-    private String callGLPK(String username) {
+    private String callGLPK(String service_usersUsername) {
 
         Runtime runtime = Runtime.getRuntime();
         Process process;
 
         try {
-            System.out.println("com.monitor.webservicetestopenshift.Test.callGLPK()  ::   " + "\"" + userDir + File.separator + "gusek" + File.separator + "glpsol\" -m \"" + userDir + File.separator + "gusek" + File.separator + "target.mod\" -d \"" + generatedFilesPath + File.separator + username + "_data.dat\"");
-            process = runtime.exec("\"" + userDir + File.separator + "gusek" + File.separator + "glpsol\" -m \"" + userDir + File.separator + "gusek" + File.separator + "target.mod\" -d \"" + generatedFilesPath + File.separator + username + "_data.dat\"");
+            System.out.println("com.monitor.webservicetestopenshift.Test.callGLPK()  ::   " + "\"" + userDir + File.separator + "gusek" + File.separator + "glpsol\" -m \"" + userDir + File.separator + "gusek" + File.separator + "target.mod\" -d \"" + generatedFilesPath + File.separator + service_usersUsername + "_data.dat\"");
+            process = runtime.exec("\"" + userDir + File.separator + "gusek" + File.separator + "glpsol\" -m \"" + userDir + File.separator + "gusek" + File.separator + "target.mod\" -d \"" + generatedFilesPath + File.separator + service_usersUsername + "_data.dat\"");
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
             String line = "", result = "";
@@ -250,9 +294,42 @@ public class Test {
         }
     }
 
-    private String sendNotification() {
+    private String sendNotification(String sensorsId, String temp_service_usersUsername) {
 
-        return "";
+        System.out.println("com.monitor.webservicetestopenshift.Test.sendNotification() " + sensorsId);
+
+        return genOutput(temp_service_usersUsername, sensorsId, "10.2", "10.1");
+
+//        return "succeeded";
+    }
+
+    @WebMethod(operationName = "genOutput")
+    public String genOutput(@WebParam(name = "service_usersUsername") String service_usersUsername, @WebParam(name = "sensorsId") String sensorsId, @WebParam(name = "proximity") String proximity, @WebParam(name = "light") String light) {
+
+        File tempOutput = new File(generatedFilesPath + File.separator + service_usersUsername + "_tempOutput.csv");
+
+        try {
+            fileWriter = new FileWriter(tempOutput, true);
+            bufferedWriter = new BufferedWriter(fileWriter);
+
+            bufferedWriter.append("'sensorsId'=>'" + sensorsId + "', 'proximity'=>'" + proximity + "', 'light'=>'" + light + "\n");
+
+            bufferedWriter.close();
+            fileWriter.close();
+        } catch (IOException ex) {
+            Logger.getLogger(Test.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return "succeeded";
+    }
+
+    @WebMethod(operationName = "clearOutput")
+    public String clearOutput(@WebParam(name = "service_usersUsername") String service_usersUsername) {
+
+        (new File(generatedFilesPath + File.separator + service_usersUsername + "_tempOutput.csv")).delete();
+        System.out.println("com.monitor.webservicetestopenshift.Test.clearOutput() : " + service_usersUsername + "_tempOutput.csv file is deleted");
+
+        return "succeeded";
     }
 
     private String putCSV(String username, String[][] data) {
