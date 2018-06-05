@@ -41,6 +41,8 @@ public class Test {
     final private String AUTH_KEY_FCM = "AAAAgB2I4bs:APA91bFxM9j79sdSul5PUl8jxujpu0qDAJjTSZAREWomFdvLYxFs2I7t9RQcL8SgYp8Zvw7rhm814xQyihIEWrWx--UflVuTQovMMq5tLbCo4WQzqakhctq9Xfb9ffU4XHxzT8vpM7kg";
     final private String API_URL_FCM = "https://fcm.googleapis.com/fcm/send";
 
+    final private String host = "web-service-mysql", user = "userg77", password = "8Shtoyuk";
+
     public boolean test = true;
 
     final private String userDir = System.getProperty("user.dir");
@@ -71,9 +73,7 @@ public class Test {
         try {
             Class.forName("com.mysql.jdbc.Driver");
             if (connection == null) {
-//                connection = DriverManager.getConnection("jdbc:mysql://johnny.heliohost.org/supriyo_sensor_cloud?useSSL=false", "supriyo_63", "sb@9051568624");
-                connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/sensor_cloud?useSSL=false", "root", "");
-//                connection = DriverManager.getConnection("jdbc:mysql://172.30.149.114:3306/sensor_cloud?useSSL=false", "userTY1", "VQvd3Ea0");
+                connection = DriverManager.getConnection("jdbc:mysql://" + host + ":3306/sensor_cloud?useSSL=false", user, password);
             }
             statement = connection.createStatement();
 
