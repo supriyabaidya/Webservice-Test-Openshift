@@ -364,8 +364,7 @@ public class Test {
 //        return "succeeded";
     }
 
-    @WebMethod(operationName = "genOutput")
-    public String genOutput(@WebParam(name = "service_usersUsername") String service_usersUsername, @WebParam(name = "sensorsId") String sensorsId, @WebParam(name = "proximity") String proximity, @WebParam(name = "light") String light) {
+    private String genOutput(@WebParam(name = "service_usersUsername") String service_usersUsername, @WebParam(name = "sensorsId") String sensorsId, @WebParam(name = "proximity") String proximity, @WebParam(name = "light") String light) {
 
         File tempOutput = new File(generatedFilesPath + File.separator + service_usersUsername + "_tempOutput.csv");
 
