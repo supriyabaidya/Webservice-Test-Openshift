@@ -13,6 +13,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -26,6 +29,7 @@ import java.util.logging.Logger;
 import javax.jws.WebService;
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
+import org.json.simple.JSONObject;
 
 /**
  *
@@ -33,6 +37,9 @@ import javax.jws.WebParam;
  */
 @WebService(serviceName = "Test")
 public class Test {
+
+    final private String AUTH_KEY_FCM = "AAAAgB2I4bs:APA91bFxM9j79sdSul5PUl8jxujpu0qDAJjTSZAREWomFdvLYxFs2I7t9RQcL8SgYp8Zvw7rhm814xQyihIEWrWx--UflVuTQovMMq5tLbCo4WQzqakhctq9Xfb9ffU4XHxzT8vpM7kg";
+    final private String API_URL_FCM = "https://fcm.googleapis.com/fcm/send";
 
     public boolean test = true;
 
@@ -57,17 +64,7 @@ public class Test {
     @WebMethod(operationName = "hello")
     public String hello(@WebParam(name = "name") String txt) {
 
-        System.out.println("com.monitor.webservicetestopenshift.Test.hello() " + test);
-
-        if (test) {
-            test = false;
-        } else {
-            test = true;
-        }
-
-        System.out.println("com.monitor.webservicetestopenshift.Test.hello() " + test);
-
-        return "Hello " + txt + " ! " + connectDB() + disconnectDB();
+        return "Hello " + txt + " ! ";
     }
 
     private String connectDB() {
@@ -75,8 +72,8 @@ public class Test {
             Class.forName("com.mysql.jdbc.Driver");
             if (connection == null) {
 //                connection = DriverManager.getConnection("jdbc:mysql://johnny.heliohost.org/supriyo_sensor_cloud?useSSL=false", "supriyo_63", "sb@9051568624");
-//                connection = DriverManager.getConnection("jdbc:mysql://172.30.149.114:3306/sensor_cloud?useSSL=false", "root", "");
-                connection = DriverManager.getConnection("jdbc:mysql://172.30.149.114:3306/sensor_cloud?useSSL=false", "userTY1", "VQvd3Ea0");
+                connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/sensor_cloud?useSSL=false", "root", "");
+//                connection = DriverManager.getConnection("jdbc:mysql://172.30.149.114:3306/sensor_cloud?useSSL=false", "userTY1", "VQvd3Ea0");
             }
             statement = connection.createStatement();
 
@@ -101,25 +98,12 @@ public class Test {
         }
     }
 
-    @WebMethod(operationName = "twoDimesionArray")
-    public String twoDimesionArray(@WebParam(name = "username") String username, @WebParam(name = "array") String[][] array) {
-        int noOfRow = array.length;
-        int noOfColomn;
-
-        for (int i = 0; i < noOfRow; i++) {
-
-            noOfColomn = array[i].length;
-            for (int j = 0; j < noOfColomn; j++) {
-                System.out.println(i + " , " + j + " => " + array[i][j]);
-            }
-        }
-        return putCSV(username, array);
-    }
-
     @WebMethod(operationName = "mainComputations")
     public String mainComputations(@WebParam(name = "service_usersUsername") String service_usersUsername, @WebParam(name = "noOfSensors") String noOfSensors, @WebParam(name = "noOfTargets") String noOfTargets, @WebParam(name = "matrix") String[][] matrix) {
 
         System.out.println("com.monitor.webservicetestopenshift.Test.mainComputations() : generatedFilesPath -> " + generatedFilesPath);
+
+        (new File(generatedFilesPath + File.separator + service_usersUsername + "_coverageNodes.csv")).delete();    //deleting old coverageNodes csv file before beginning of mainComputations of each user
 
         if (!generatedFilesDirectory.exists()) {
             System.out.println(" generatedFilesDirectory is created");
@@ -146,7 +130,7 @@ public class Test {
             return result;
         }
 
-        result = callGLPK(service_usersUsername);
+        result = callGLPK(service_usersUsername);   // '_coverageNodes.csv' file is created here
 
         if (!result.equals("succeeded")) {
             return result;
@@ -161,11 +145,14 @@ public class Test {
 //            System.out.println("line start:");
             String line, rowData[];
             bufferedReader.readLine();
-            while ((line = bufferedReader.readLine()) != null) {
+            while ((line = bufferedReader.readLine()) != null) {    // '_coverageNodes.csv' file is being read here foe sendNotification to each sensor_node whose x value is '1'
                 System.out.println(" line " + line);
                 rowData = line.split(",");
                 if (rowData[1].equals("1")) {
-                    sendNotification(rowData[0], service_usersUsername);
+                    result = sendNotification(rowData[0], service_usersUsername);
+                    if (!result.equals("succeeded")) {
+                        return result;
+                    }
                 }
             }
 
@@ -181,7 +168,6 @@ public class Test {
             return ex.toString();
         }
 
-//        sendNotification("C");
         return "succeeded";
     }
 
@@ -221,6 +207,7 @@ public class Test {
         try {
             fileWriter = new FileWriter(coverageR);
             bufferedWriter = new BufferedWriter(fileWriter);
+            bufferedWriter.write("i,j,S\n");
 
             int row = matrix.length;
             int column;
@@ -301,7 +288,78 @@ public class Test {
 
         System.out.println("com.monitor.webservicetestopenshift.Test.sendNotification() " + sensorsId);
 
-        return genOutput(temp_service_usersUsername, sensorsId, "10.2", "10.1");
+        String DeviceIdKey = null;
+        connectDB();
+
+        try {
+
+            resultset = statement.executeQuery("select token from sensors where id='" + sensorsId + "';");
+            resultset.last();
+            int rowCount = resultset.getRow();
+
+            if (rowCount == 1) {
+                resultset = statement.executeQuery("select token from sensors where id='" + sensorsId + "';");
+                resultset.next();
+                DeviceIdKey = resultset.getString(1);
+
+            }
+
+            disconnectDB();
+
+            URL url = new URL(API_URL_FCM);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+            conn.setUseCaches(false);
+            conn.setDoInput(true);
+            conn.setDoOutput(true);
+
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Authorization", "key=" + AUTH_KEY_FCM);
+            conn.setRequestProperty("Content-Type", "application/json");
+            System.out.println(DeviceIdKey);
+
+            JSONObject jSONObject = new JSONObject();
+            jSONObject.put("to", DeviceIdKey.trim());
+
+            JSONObject info = new JSONObject();
+
+            info.put("title", sensorsId + "=>" + temp_service_usersUsername); // Notification title
+            info.put("message", temp_service_usersUsername + " has requested the sensor values."); // Notification body
+            info.put("body", temp_service_usersUsername + " has requested the sensor values."); // Notification body
+            jSONObject.put("notification", info); // <= changed from "data"
+
+            System.out.println(jSONObject.toString());
+
+            try (OutputStreamWriter outputStreamWriter = new OutputStreamWriter(conn.getOutputStream())) {
+                outputStreamWriter.write(jSONObject.toString());
+                outputStreamWriter.flush();
+            } catch (Exception e) {
+                Logger.getLogger(Test.class.getName()).log(Level.SEVERE, null, e);
+            }
+
+            int responseCode = conn.getResponseCode();
+            System.out.println("Response Code : " + responseCode);
+
+            StringBuffer response = null;
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+                String inputLine;
+                response = new StringBuffer();
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+            } catch (Exception e) {
+                Logger.getLogger(Test.class.getName()).log(Level.SEVERE, null, e);
+            }
+
+            System.out.println("Resonse: " + response);
+
+//            return genOutput(temp_service_usersUsername, sensorsId, "10.2", "10.1");
+            return "succeeded";
+        } catch (Exception e) {
+            System.out.println(e);
+            Logger.getLogger(Test.class.getName()).log(Level.SEVERE, null, e);
+            return e.toString();
+        }
 
 //        return "succeeded";
     }
@@ -434,4 +492,91 @@ public class Test {
 
         return "success";
     }
+
+    @WebMethod(operationName = "displaySensors")
+    public String[][] displaySensors() {
+        connectDB();
+        String[][] contentList = null;
+
+        try {
+            resultset = statement.executeQuery("select * from sensors;");
+            resultset.last();
+            int rowCount = resultset.getRow();
+            contentList = new String[rowCount][];
+
+            resultset = statement.executeQuery("select * from sensors;");
+            int counter = 0;
+            while (resultset.next()) {
+                String[] content = {resultset.getString(4), resultset.getString(1), resultset.getString(2), resultset.getString(5), resultset.getString(6), resultset.getString(7)};
+                contentList[counter++] = content;
+            }
+
+            disconnectDB();
+            return contentList;
+
+        } catch (SQLException ex) {
+            Logger.getLogger(Test.class.getName()).log(Level.SEVERE, null, ex);
+            disconnectDB();
+            return contentList;
+        }
+    }
+
+    @WebMethod(operationName = "sensorSignUp")
+    public String sensorSignUp(@WebParam(name = "sensorUsername") String user_name, @WebParam(name = "password") String password, @WebParam(name = "token") String token, @WebParam(name = "status") String status) {
+        connectDB();
+        try {
+            statement.executeUpdate("INSERT INTO sensors(user_name,password,token,status) VALUES('" + user_name + "','" + password + "','" + token + "','" + status + "');");
+
+            disconnectDB();
+            return "sensor is inserted successfully .";
+
+        } catch (SQLException ex) {
+            Logger.getLogger(Test.class.getName()).log(Level.SEVERE, null, ex);
+            disconnectDB();
+            return "webservice: " + ex.toString();
+        }
+    }
+
+    @WebMethod(operationName = "sensedValues")
+    public String sensedValues(@WebParam(name = "sensorID") String sensorID, @WebParam(name = "sensorUsername") String user_name, @WebParam(name = "applicationUsername") String applicationUsername, @WebParam(name = "token") String token, @WebParam(name = "status") String status, @WebParam(name = "proximity") String proximity, @WebParam(name = "light") String light) {
+        connectDB();
+        try {
+
+            if (!proximity.equalsIgnoreCase("-1.0") || !light.equalsIgnoreCase("-1.0")) {
+
+                genOutput(applicationUsername, sensorID, proximity, light);
+
+//                statement.executeUpdate("UPDATE users SET proximity = " + proximity + " , light = " + light + "  WHERE user_name='" + user_name + "';");
+//                System.out.println("com.webservice.android.AndroidWebService.updateUsers() change " + user_name + ": " + user_name.trim() + ": " + proximity + " , " + light);
+            }
+
+            statement.executeUpdate("UPDATE sensors SET token='" + token + "' , status='" + status + "' WHERE user_name='" + user_name + "';");
+            System.out.println("com.webservice.android.AndroidWebService.updateUsers() no change " + user_name + ": " + user_name.trim() + ": " + proximity + " , " + light);
+
+            disconnectDB();
+            return "sensors is updated successfully .";
+
+        } catch (SQLException ex) {
+            Logger.getLogger(Test.class.getName()).log(Level.SEVERE, null, ex);
+            disconnectDB();
+            return "webservice: " + ex.toString();
+        }
+    }
+
+    @WebMethod(operationName = "updateSensorsLocationOnly")
+    public String updateSensorsLocationOnly(@WebParam(name = "sensorUsername") String user_name, @WebParam(name = "longitude") String longitude, @WebParam(name = "latitude") String latitude) {
+        connectDB();
+
+        try {
+            statement.executeUpdate("UPDATE sensors SET longitude=" + longitude + " , latitude=" + latitude + " WHERE user_name='" + user_name + "';");
+            disconnectDB();
+            return "sensors location is updated successfully.";
+
+        } catch (SQLException ex) {
+            Logger.getLogger(Test.class.getName()).log(Level.SEVERE, null, ex);
+            disconnectDB();
+            return "webservice: " + ex.toString();
+        }
+    }
+
 }
