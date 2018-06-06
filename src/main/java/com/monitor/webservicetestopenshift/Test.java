@@ -66,7 +66,13 @@ public class Test {
     @WebMethod(operationName = "hello")
     public String hello(@WebParam(name = "name") String txt) {
 
-        return "Hello, " + txt + " ! " + connectDB() + " , " + disconnectDB();
+        return "Hello, " + txt + " ! , userDir : " + userDir;
+    }
+
+    @WebMethod(operationName = "databaseCheck")
+    public String databaseCheck() {
+
+        return "databaseCheck : " + connectDB() + " , " + disconnectDB();
     }
 
     private String connectDB() {
@@ -264,7 +270,7 @@ public class Test {
 
         try {
             System.out.println("com.monitor.webservicetestopenshift.Test.callGLPK()  ::   " + "\"" + userDir + File.separator + "gusek" + File.separator + "glpsol.exe\" -m \"" + userDir + File.separator + "gusek" + File.separator + "target.mod\" -d \"" + generatedFilesPath + File.separator + service_usersUsername + "_data.dat\"");
-            process = runtime.exec(File.separator + userDir + File.separator + "gusek" + File.separator + "glpsol.exe"+File.separator+ " -m "+ File.separator + userDir + File.separator + "gusek" + File.separator + "target.mod\" -d \"" + generatedFilesPath + File.separator + service_usersUsername + "_data.dat\"");  // problem
+            process = runtime.exec(File.separator + userDir + File.separator + "gusek" + File.separator + "glpsol.exe" + File.separator + " -m " + File.separator + userDir + File.separator + "gusek" + File.separator + "target.mod\" -d \"" + generatedFilesPath + File.separator + service_usersUsername + "_data.dat\"");  // problem
             bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
             String line = "", result = "";
