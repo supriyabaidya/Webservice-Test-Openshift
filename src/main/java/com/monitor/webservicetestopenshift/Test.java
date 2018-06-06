@@ -66,7 +66,26 @@ public class Test {
     @WebMethod(operationName = "hello")
     public String hello(@WebParam(name = "name") String txt) {
 
-        return "Hello, " + txt + " ! , userDir : " + userDir;
+        Runtime runtime = Runtime.getRuntime();
+        Process process;
+        String processResult = " processResult ";
+
+        try {
+            process = runtime.exec("ls");
+
+            bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+            String line = "";
+            while ((line = bufferedReader.readLine()) != null) {
+                processResult += line + "\n";
+            }
+            bufferedReader.close();
+
+        } catch (IOException ex) {
+            Logger.getLogger(Test.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return "Hello, " + txt + " ! , userDir : " + userDir + " ! , processResult : " + processResult;
     }
 
     @WebMethod(operationName = "databaseCheck")
