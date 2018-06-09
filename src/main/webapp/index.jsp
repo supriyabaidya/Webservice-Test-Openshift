@@ -12,7 +12,7 @@
         <title>Monitor Test</title>
     </head>
     <body>
-        <h1>Hello World ! </br>commit : 6.0.15</h1>
+        <h1>Hello World ! </br>commit : 6.0.65</h1>
 
 
 

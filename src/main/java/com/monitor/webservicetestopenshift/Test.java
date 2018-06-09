@@ -41,12 +41,13 @@ public class Test {
     final private String AUTH_KEY_FCM = "AAAAgB2I4bs:APA91bFxM9j79sdSul5PUl8jxujpu0qDAJjTSZAREWomFdvLYxFs2I7t9RQcL8SgYp8Zvw7rhm814xQyihIEWrWx--UflVuTQovMMq5tLbCo4WQzqakhctq9Xfb9ffU4XHxzT8vpM7kg";
     final private String API_URL_FCM = "https://fcm.googleapis.com/fcm/send";
 
-    final private String host = "web-service-mysql", user = "userg77", password = "8Shtoyuk";
+    final private String host = "aap04typ6oo59p.cfrxhn0ubfd7.ap-south-1.rds.amazonaws.com", databaseName = "sensor_cloud", user = "awsDB", password = "9051568624";
 
     public boolean test = true;
 
-    final private String userDir = System.getProperty("user.dir");
-    final private String generatedFilesPath = userDir + File.separator + "generatedFiles";
+//    final private String userDir = System.getProperty("user.dir");
+//    final private String generatedFilesPath = userDir + File.separator + "generatedFiles";
+    final private String generatedFilesPath = "/home/ec2-me/glpk-4.55/generatedFiles";
     final private File generatedFilesDirectory = new File(generatedFilesPath);
     private FileWriter fileWriter;
     private BufferedWriter bufferedWriter;
@@ -66,39 +67,44 @@ public class Test {
     @WebMethod(operationName = "hello")
     public String hello(@WebParam(name = "name") String txt) {
 
-        Runtime runtime = Runtime.getRuntime();
-        Process process;
-        String processResult = " processResult ";
-
-        try {
-            process = runtime.exec("ls");
-
-            bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-            String line = "";
-            while ((line = bufferedReader.readLine()) != null) {
-                processResult += line + "\n";
-            }
-            bufferedReader.close();
-
-        } catch (IOException ex) {
-            Logger.getLogger(Test.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        return "Hello, " + txt + " ! , userDir : " + userDir + " ! , processResult : " + processResult;
+//        Runtime runtime = Runtime.getRuntime();
+//        Process process = null;
+//        String processResult = " processResult : ";
+//
+//        try {
+//            if (!generatedFilesDirectory.exists()) {
+//                System.out.println(" generatedFilesDirectory is created");
+//                generatedFilesDirectory.mkdirs();
+//            }
+//            String[] cmd = {"/bin/bash", "-c", "cd /home/ec2-me/glpk-4.55 ;sudo examples/glpsol -m target_coverage/target.mod -d test/data.dat"};//sudo  //  ./glpsol -m target.mod -d data.dat
+//
+//            process = runtime.exec(cmd);
+//            bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+//
+//            String line = "";
+//            while ((line = bufferedReader.readLine()) != null) {
+//                System.out.println(line);
+//                processResult += line + "\n";
+//            }
+//            bufferedReader.close();
+//
+//        } catch (IOException ex) {
+//            Logger.getLogger(Test.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+        return "\nHello, " + txt + " !";
     }
 
     @WebMethod(operationName = "databaseCheck")
-    public String databaseCheck() {
+    public String databaseCheck(@WebParam(name = "name") String txt) {
 
-        return "databaseCheck : " + connectDB() + " , " + disconnectDB();
+        return connectDB() + " , " + disconnectDB();
     }
 
     private String connectDB() {
         try {
             Class.forName("com.mysql.jdbc.Driver");
             if (connection == null) {
-                connection = DriverManager.getConnection("jdbc:mysql://" + host + ":3306/sensor_cloud?useSSL=false", user, password);
+                connection = DriverManager.getConnection("jdbc:mysql://" + host + ":3306/" + databaseName + "?useSSL=false", user, password);
             }
             statement = connection.createStatement();
 
@@ -288,8 +294,10 @@ public class Test {
         Process process;
 
         try {
-            System.out.println("com.monitor.webservicetestopenshift.Test.callGLPK()  ::   " + "\"" + userDir + File.separator + "gusek" + File.separator + "glpsol.exe\" -m \"" + userDir + File.separator + "gusek" + File.separator + "target.mod\" -d \"" + generatedFilesPath + File.separator + service_usersUsername + "_data.dat\"");
-            process = runtime.exec(File.separator + userDir + File.separator + "gusek" + File.separator + "glpsol.exe" + File.separator + " -m " + File.separator + userDir + File.separator + "gusek" + File.separator + "target.mod\" -d \"" + generatedFilesPath + File.separator + service_usersUsername + "_data.dat\"");  // problem
+            String[] cmd = {"/bin/bash", "-c", "cd /home/ec2-me/glpk-4.55 ;sudo examples/glpsol -m target_coverage/target.mod -d " + generatedFilesPath + "/" + service_usersUsername + "_data.dat"};
+//            System.out.println("com.monitor.webservicetestopenshift.Test.callGLPK()  ::   " + "\"" + userDir + File.separator + "gusek" + File.separator + "glpsol.exe\" -m \"" + userDir + File.separator + "gusek" + File.separator + "target.mod\" -d \"" + generatedFilesPath + File.separator + service_usersUsername + "_data.dat\"");
+//            process = runtime.exec(File.separator + userDir + File.separator + "gusek" + File.separator + "glpsol.exe" + File.separator + " -m " + File.separator + userDir + File.separator + "gusek" + File.separator + "target.mod\" -d \"" + generatedFilesPath + File.separator + service_usersUsername + "_data.dat\"");  // problem
+            process = runtime.exec(cmd);
             bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
             String line = "", result = "";
@@ -411,8 +419,17 @@ public class Test {
 
     @WebMethod(operationName = "showOutput")
     public String[][] showOutput(@WebParam(name = "service_usersUsername") String service_usersUsername) {
+        String[][] output;
 
         File tempOutput = new File(generatedFilesPath + File.separator + service_usersUsername + "_tempOutput.csv");
+        if (!tempOutput.exists()) {
+            output = new String[1][4];
+            output[0][0] = "Data";
+            output[0][1] = "is";
+            output[0][2] = "not";
+            output[0][3] = "found";
+            return output;
+        }
 
         List<List<String>> outputList = new ArrayList<>();
 
@@ -435,7 +452,7 @@ public class Test {
                 noOfRow++;
             }
 
-            String[][] output = new String[noOfRow][4];     //noOfColomn=4
+            output = new String[noOfRow][4];     //noOfColomn=4
 
             for (int i = 0; i < noOfRow; i++) {
                 for (int j = 0; j < 4; j++) {     //noOfColomn=4
@@ -449,12 +466,12 @@ public class Test {
 
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Test.class.getName()).log(Level.SEVERE, null, ex);
-            String[][] output = new String[1][1];
+            output = new String[1][4];
             output[0][0] = ex.toString();
             return output;
         } catch (IOException ex) {
             Logger.getLogger(Test.class.getName()).log(Level.SEVERE, null, ex);
-            String[][] output = new String[1][1];
+            output = new String[1][4];
             output[0][0] = ex.toString();
             return output;
         }
